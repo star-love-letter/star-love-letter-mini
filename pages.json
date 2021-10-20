@@ -1,0 +1,110 @@
+{
+	"easycom": {
+		"^u-(.*)": "@/uview-ui/components/u-$1/u-$1.vue"
+	},
+	// "condition": { //模式配置，仅开发期间生效
+	// 	"current": 0, //当前激活的模式(list 的索引项)
+	// 	"list": [{
+	// 		"name": "confession", //模式名称
+	// 		"path": "pages/login/login" //启动页面，必选
+	// 		// "query": "uuid=c4bba940-f69e-11ea-a419-6bafda9d095e&__id__=1" //启动参数，在页面的onLoad函数里面得到
+	// 	}]
+	// },
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"onReachBottomDistance": 150
+			}
+		},
+		{
+			"path": "pages/Search/Search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"enablePullDownRefresh": false
+			}
+		
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "用户"
+			}
+		},
+		{
+		    "path" : "pages/wxLogin/wxLogin",
+		    "style" :                                                                                    
+		    {
+		        "navigationBarTitleText": "微信登录",
+		        "enablePullDownRefresh": false
+		    }
+		    
+		},
+		{
+		    "path" : "pages/wxLogin/regOptions",
+		    "style" :                                                                                    
+		    {
+		        "navigationBarTitleText": "微信注册",
+		        "enablePullDownRefresh": false
+		    }
+		    
+		},
+		{
+			"path": "pages/confession/confession",
+			"style": {
+				"navigationBarTitleText": "表白"
+			}
+		},
+		{
+			"path": "pages/Details/Details",
+			"style": {
+				"navigationBarTitleText": "详情页"
+			}
+		},
+		{
+			"path": "pages/UserInfo/UserInfo",
+			"style": {
+				"navigationBarTitleText": "用户信息页面"
+			}
+
+		}
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uView",
+		"enablePullDownRefresh": false,
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#FFFFFF",
+		"backgroundTextStyle": "dark",
+		"navigationStyle": "custom"
+	},
+	"tabBar": {
+		"color": "#909399",
+		"selectedColor": "#FF7877",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"iconWidth": "30px",
+		"height": "65px",
+		"fontSize": "12px",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/tabBar/home.jpg",
+				"selectedIconPath": "static/tabBar/home1.jpg",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/confession/confession",
+				"iconPath": "static/tabBar/love.jpg",
+				"selectedIconPath": "static/tabBar/love1.jpg",
+				"text": "表白"
+			},
+			{
+				"pagePath": "pages/user/user",
+				"iconPath": "static/tabBar/user.jpg",
+				"selectedIconPath": "static/tabBar/user1.jpg",
+				"text": "用户"
+			}
+		]
+	}
+}
