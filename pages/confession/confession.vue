@@ -20,12 +20,23 @@
 			<u-form-item label="表白内容:" prop="content">
 				<u-input v-model="form.content" type="textarea" height="100" auto-height="true" placeholder=" " />
 			</u-form-item>
-			<u-form-item :label-position="label_position" label="上传图片">
-				<u-upload ref="uUpload" :action="actionImg" :auto-upload="true" :header="uploadHeader" max-count="9"
-					:deletable="deletable">
-				</u-upload>
-				<u-button @click="submit" throttle-time='1000'>上传</u-button>
-			</u-form-item>
+			<div class="UP_photo">
+				<view v-for="(item,index) in tempFilePaths" :key="index" class="Photo">
+					<u-image :src="item" width="200rpx" height="200rpx" mode="aspectFit" @click="previewImage(index)">
+					</u-image>
+					<view @tap.stop>
+						<view class="delImg" @click="delImg(index)">
+							<u-icon name="close" size="20rpx"></u-icon>
+						</view>
+					</view>
+				</view>
+				<div class="upDataPhoto" v-if="updataPhoneNum < 6" @click='updataPhotoFn'>
+					<div class="updataflex">
+						<span>+</span>
+						<p style="font-size: 25rpx;">上传图片</p>
+					</div>
+				</div>
+			</div>
 			<u-form-item label="是否匿名:" prop="checkedAnonymous">
 				<u-switch slot="right" v-model="checkedAnonymous" active-color="green" inactive-color="#eee"></u-switch>
 			</u-form-item>
@@ -34,24 +45,12 @@
 				</u-switch>
 			</u-form-item>
 			<view class="button">
-				<u-button type="success" shape="circle" plain :ripple="true" @click="Publish">发布
+				<!-- 发布按钮 -->
+				<u-button type="success" @click='Publish()' shape="circle" :loading="!showUpdateImg" :disabled='!showUpdateImg'>
+					{{publishText}}
 				</u-button>
 			</view>
 		</u-form>
-		<u-mask :show="closePrompt" @click="closePrompt = false">
-			<view class="warp">
-				<view class="Prompt">
-					<view>
-						<h1>注意:</h1>
-						<span>图片上传完成后不能进行更改</span>
-					</view>
-					<view style="text-align: center;">
-						<u-button @click="closePrompt = false" size="medium">确认</u-button>
-					</view>
-				</view>
-			</view>
-		</u-mask>
-
 		<!-- 发布成功弹窗 -->
 		<u-top-tips ref="Publish" :navbar-height="statusBarHeight + navbarHeight"></u-top-tips>
 		<!-- 上传图片成功弹窗 -->
@@ -76,19 +75,15 @@
 				be_sexShow: false,
 				// 上传图片的地址
 				actionImg: this.http + '/api/file/image',
-				showPublishSuccess: false,
-				// 上传的头信息
-				uploadHeader: {
-					token: uni.getStorageSync('token'),
-					'content-type': 'application/x-www-form-urlencoded'
-				},
-				// 上传图片的file路径
-				imgList: [],
-				// 是否显示图片右上角的删除按钮
-				deletable: true,
-				// 关闭遮罩层
-				closePrompt: true,
-				label_position: "left",
+				// 添加图片的链接
+				tempFilePaths: [],
+				// 上传图片的列表
+				imageList: [],
+				// 上传图片列表
+				updataPhotoList: '',
+				// 判断图片是否上传完成
+				showUpdateImg: true,
+				updataPhoneNum: 0,
 				sex: [{
 						value: '1',
 						label: '男'
@@ -159,21 +154,54 @@
 				navbarHeight: 44
 			}
 		},
+		computed: {
+			publishText() {
+				return this.showUpdateImg ? '发布' : '图片上传中'
+			}
+		},
 		methods: {
-			// 上传图片
-			submit() {
-				let files = [];
-				// 通过filter，筛选出上传进度为100的文件(因为某些上传失败的文件，进度值不为100，这个是可选的操作)
-				files = this.$refs.uUpload.lists.filter(val => {
-					return val.progress == 100;
+			// 上传图片的函数
+			updataPhotoFn() {
+				uni.chooseImage({
+					count: 1,
+					success: (chooseImageRes) => {
+						this.updataPhotoList = chooseImageRes.tempFilePaths[0];
+						this.tempFilePaths.push(chooseImageRes.tempFilePaths[0]);
+						this.updataPhoneNum = this.tempFilePaths.length;
+						this.updatePhoto()
+					}
+				});
+			},
+			// 上传图片到服务器
+			updatePhoto() {
+				this.showUpdateImg = false;
+				const uploadTask = uni.uploadFile({
+					url: this.actionImg,
+					filePath: this.updataPhotoList,
+					name: 'file',
+					header: {
+						token: uni.getStorageSync('token')
+					},
+					success: (uploadFileRes) => {
+						console.log(uploadFileRes);
+						let successData = JSON.parse(uploadFileRes.data);
+						this.imageList.push(successData.data);
+						this.showUpdateImg = true;
+					}
 				})
-				// 如果您不需要进行太多的处理，直接如下即可
-				for (let i = 0; i < files.length; i++) {
-					this.imgList.push(files[i].response.data);
-				}
-				this.deletable = false;
-				console.log(files)
-				this.showTipsImg()
+			},
+			// 点击删除图片
+			delImg(index) {
+				this.tempFilePaths.splice(index, 1);
+				this.imageList.splice(index, 1);
+				this.updataPhoneNum -= 1;
+			},
+			// 预览图片
+			previewImage(index) {
+				uni.previewImage({
+					current: index,
+					urls: this.tempFilePaths
+				});
 			},
 			// 表白者性别
 			selectSex(value) {
@@ -189,9 +217,9 @@
 			Publish() {
 				this.$refs.uForm.validate(valid => {
 					if (valid) {
-						let imageList = JSON.stringify(this.imgList)
+						let imageList = JSON.stringify(this.imageList)
 						console.log(imageList)
-						this.$u.post('/api/table/add', {
+						this.$u.http.post('/api/table/add', {
 							"sender": this.form.Name,
 							"senderSex": this.form.Sex_Num,
 							"recipient": this.form.beName,
@@ -203,29 +231,11 @@
 						}).then(res => {
 							this.showTipsPublish(this.getMsg(res))
 							if (res.code === 200) {
-								this.$refs.uUpload.clear();
-								this.form = {
-									Name: '',
-									Sex: '',
-									Sex_Num: '',
-									beName: '',
-									beSex: '',
-									beSex_Num: '',
-									content: ''
-								}
-								setTimeout(() => {
-									uni.switchTab({
-										url: '../index/index',
-										success() {
-											// 跳转指定页面后刷新
-											// getCurrentPages()是当前页面栈
-											// getCurrentPages().pop();//当前页面
-											var page = getCurrentPages().pop();
-											if (page == undefined || page == null) return;
-											page.onLoad();
-										}
-									})
-								}, 2000)
+								setTimeout(() => {							
+									uni.reLaunch({
+										url: '../index/index'
+									});
+								}, 1000)
 							}
 						})
 					} else {
@@ -257,7 +267,7 @@
 	}
 </script>
 
-<style lang="less">
+<style lang="scss">
 	.u-form {
 		margin: 50rpx;
 	}
@@ -288,5 +298,47 @@
 			margin: 20rpx 0;
 			text-indent: 2em;
 		}
+	}
+
+	.upDataPhoto {
+		display: inline-block;
+		width: 200rpx;
+		height: 200rpx;
+		background-color: rgb(244, 245, 247);
+		margin: 9rpx;
+
+		.updataflex {
+			width: 100%;
+			height: 100%;
+			font-size: 50rpx;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+	}
+
+	.delImg {
+		width: 50rpx;
+		height: 48rpx;
+		border-radius: 50%;
+		text-align: center;
+		background-color: rgba($color: #BEBEBE, $alpha: 0.5);
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
+
+	.Photo {
+		position: relative;
+		width: 200rpx;
+		height: 200rpx;
+		display: inline-block;
+		margin: 9rpx;
+	}
+
+	.UP_photo {
+		display: flex;
+		flex-wrap: wrap;
 	}
 </style>

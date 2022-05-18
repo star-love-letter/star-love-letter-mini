@@ -15,16 +15,9 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "首页",
-				"onReachBottomDistance": 150
+				"onReachBottomDistance": 150,
+				"enablePullDownRefresh": true
 			}
-		},
-		{
-			"path": "pages/Search/Search",
-			"style": {
-				"navigationBarTitleText": "搜索",
-				"enablePullDownRefresh": false
-			}
-		
 		},
 		{
 			"path": "pages/user/user",
@@ -33,28 +26,35 @@
 			}
 		},
 		{
-		    "path" : "pages/wxLogin/wxLogin",
-		    "style" :                                                                                    
-		    {
-		        "navigationBarTitleText": "微信登录",
-		        "enablePullDownRefresh": false
-		    }
-		    
-		},
-		{
-		    "path" : "pages/wxLogin/regOptions",
-		    "style" :                                                                                    
-		    {
-		        "navigationBarTitleText": "微信注册",
-		        "enablePullDownRefresh": false
-		    }
-		    
-		},
-		{
 			"path": "pages/confession/confession",
 			"style": {
 				"navigationBarTitleText": "表白"
 			}
+		},
+		{
+			"path": "pages/Search/Search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"enablePullDownRefresh": false
+			}
+
+		},
+
+		{
+			"path": "pages/wxLogin/wxLogin",
+			"style": {
+				"navigationBarTitleText": "微信登录",
+				"enablePullDownRefresh": false
+		 }
+
+		},
+		{
+			"path": "pages/wxLogin/regOptions",
+			"style": {
+				"navigationBarTitleText": "微信注册",
+				"enablePullDownRefresh": false
+			}
+
 		},
 		{
 			"path": "pages/Details/Details",
@@ -68,7 +68,24 @@
 				"navigationBarTitleText": "用户信息页面"
 			}
 
+		},
+		{
+			"path": "pages/contactUs/contactUs",
+			"style": {
+				"navigationBarTitleText": "联系我们",
+				"enablePullDownRefresh": false
+			}
+		
 		}
+	    ,{
+            "path" : "pages/myPost/myPost",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
@@ -89,20 +106,20 @@
 		"fontSize": "12px",
 		"list": [{
 				"pagePath": "pages/index/index",
-				"iconPath": "static/tabBar/home.jpg",
-				"selectedIconPath": "static/tabBar/home1.jpg",
+				"iconPath": "static/tabBar/1.jpg",
+				"selectedIconPath": "static/tabBar/11.jpg",
 				"text": "首页"
 			},
 			{
 				"pagePath": "pages/confession/confession",
-				"iconPath": "static/tabBar/love.jpg",
-				"selectedIconPath": "static/tabBar/love1.jpg",
+				"iconPath": "static/tabBar/2.jpg",
+				"selectedIconPath": "static/tabBar/22.jpg",
 				"text": "表白"
 			},
 			{
 				"pagePath": "pages/user/user",
-				"iconPath": "static/tabBar/user.jpg",
-				"selectedIconPath": "static/tabBar/user1.jpg",
+				"iconPath": "static/tabBar/3.jpg",
+				"selectedIconPath": "static/tabBar/33.jpg",
 				"text": "用户"
 			}
 		]

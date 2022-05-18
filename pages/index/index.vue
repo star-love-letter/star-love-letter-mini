@@ -74,6 +74,15 @@
 			this.postSize += 10;
 			this.getPost()
 		},
+		onPullDownRefresh() {
+			console.log('refresh');
+			uni.reLaunch({
+				url: '../index/index'
+			});
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+			}, 1000);
+		},
 		methods: {
 			// 点赞
 			Like(id, support) {
@@ -116,7 +125,6 @@
 						this.error(res)
 					} else {
 						this.postData = res.data;
-						console.log(this.postData)
 					}
 				})
 				// 获取帖子总数
@@ -124,14 +132,12 @@
 					if (res.code !== 200) {
 						this.error(res)
 					} else {
-						console.log(res)
 						this.postCount = res.data;
 					}
 				})
 			},
 			// 打开顶部提示
 			showTips(res) {
-				console.log(res.dataMsg)
 				this.$refs.uTips.show({
 					title: res.dataMsg,
 					type: res.dataType,
@@ -139,7 +145,7 @@
 				});
 			},
 		},
-		onLoad() {
+		mounted() {
 			this.getPost()
 		}
 	}

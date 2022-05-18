@@ -7,16 +7,16 @@
 			<u-search placeholder="输入关键字" v-model="keyword" :animation="true" bg-color="#ededed" :focus='true'
 				@custom="search" @search="search"></u-search>
 		</view>
-		<view class="hint" v-if="hintShow === true">
+		<view class="hint" v-show="hintShow === true">
 			<p>请在搜索框输入关键字进行搜索</p>
 		</view>
-		<view class="hint" v-else>
+		<view class="hint" v-show="noData === true">
 			<p>暂无搜索结果</p>
 		</view>
 		<view class="content">
 			<ul :data='serachData' class='serachData'>
 				<li v-for="item in serachData" :keys='item.id'>
-					<post :item="item" :pageNum='pageNum'></post>
+					<post :item="item"></post>
 					<view class="operate layout_flex">
 						<view class="actionPost">
 							<view @tap="Like(item.id,item.support)" :class="{ likeActive:item.support }">
@@ -44,7 +44,6 @@
 		},
 		data() {
 			return {
-				pageNum: 1,
 				// 搜索值
 				keyword: '',
 				// 自定义顶部导航-渐变色
@@ -52,9 +51,11 @@
 					backgroundImage: 'linear-gradient(90deg, rgb(255, 0, 69), rgb(255, 106, 95))'
 				},
 				// 搜索数据的列表
-				serachData: '',
+				serachData: [],
 				// 是否显示提示文字
-				hintShow: true
+				hintShow: true,
+				// 是否显示没有数据
+				noData: false
 			}
 		},
 		methods: {
@@ -65,9 +66,13 @@
 					pageSize: 10,
 					keyword: this.keyword,
 				}).then(res => {
-					console.log(res)
+					this.noData = false
 					this.serachData = res.data;
 					this.hintShow = false
+					let newArr = [...this.serachData]
+					if(newArr.length === 0){
+						this.noData = true
+					}
 				})
 			},
 			// 点赞
@@ -78,7 +83,6 @@
 						if (res.code !== 200) {
 							this.error(res)
 						} else {
-							console.log(res)
 							this.search()
 						}
 					})

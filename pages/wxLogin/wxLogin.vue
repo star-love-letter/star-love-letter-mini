@@ -7,8 +7,8 @@
 				未登录
 			</view>
 			<view class='header' v-else>
-				<image :src='avatarUrl'></image>
-				{{nickName}}
+				<image class="image" :src="info.avatarUrl"></image>
+				<view>{{info.nickName}}</view>
 			</view>
 			<view class='content'>
 				<view>申请获取以下权限</view>
@@ -16,7 +16,7 @@
 			</view>
 
 			<button v-if="regPage === false" class='bottom' type='primary' open-type="getUserInfo"
-				withCredentials="true" lang="zh_CN" @getuserinfo="wxGetUserInfo">
+				withCredentials="true" lang="zh_CN" @click="getUserProfile">
 				授权登录
 			</button>
 			<button v-else class='bottom' type='primary' @tap="goReg">
@@ -24,6 +24,8 @@
 			</button>
 		</view>
 		<!-- #endif -->
+
+
 	</view>
 </template>
 
@@ -38,7 +40,8 @@
 				isCanUse: uni.getStorageSync('isCanUse') || true, //默认为true
 				wxCode: '',
 				getInfo: false,
-				regPage: false
+				regPage: false,
+				info: {}
 			};
 		},
 		methods: {
@@ -48,39 +51,38 @@
 				})
 			},
 			//第一授权获取用户信息===》按钮触发
-			wxGetUserInfo() {
-				this.getInfo = true
-				let _this = this;
-				uni.getUserInfo({
-					provider: 'weixin',
-					success: function(infoRes) {
-						console.log(infoRes)
-						_this.nickName = infoRes.userInfo.nickName; //昵称
-						_this.avatarUrl = infoRes.userInfo.avatarUrl; //头像
-						try {
-							uni.setStorageSync('isCanUse', false); //记录是否第一次授权  false:表示不是第一次授权
-							_this.updateUserInfo();
-						} catch (e) {}
-						uni.switchTab({
-							url:'../index/index'
-						})
-					},
-					fail(res) {
-						console.log(res)
-						uni.showToast({
-							title: "微信登录授权失败",
-							icon: "none"
-						});
-					}
-				});
-			},
+			// wxGetUserInfo() {
+			// 	this.getInfo = true
+			// 	let _this = this;
+			// 	uni.getUserInfo({
+			// 		provider: 'weixin',
+			// 		success: function(infoRes) {
+			// 			console.log(infoRes)
+			// 			_this.nickName = infoRes.userInfo.nickName; //昵称
+			// 			_this.avatarUrl = infoRes.userInfo.avatarUrl; //头像
+			// 			try {
+			// 				uni.setStorageSync('isCanUse', false); //记录是否第一次授权  false:表示不是第一次授权
+			// 				_this.updateUserInfo();
+			// 			} catch (e) {}
+			// 			uni.switchTab({
+			// 				url: '../index/index'
+			// 			})
+			// 		},
+			// 		fail(res) {
+			// 			console.log(res)
+			// 			uni.showToast({
+			// 				title: "微信登录授权失败",
+			// 				icon: "none"
+			// 			});
+			// 		}
+			// 	});
+			// },
 
 			//登录
 			login() {
 				uni.showLoading({
 					title: '登录中...'
 				});
-
 
 				let that = this;
 				// 1、获取服务商
@@ -150,7 +152,8 @@
 															res
 															.data)
 														//openId、或SessionKdy存储//隐藏loading
-														uni.hideLoading();
+														uni
+															.hideLoading();
 													})
 												}
 											});
@@ -167,6 +170,32 @@
 						}
 					}
 				});
+			},
+			// 获取用户信息
+			getUserProfile() {
+				let that = this
+				uni.getUserProfile({
+					desc: "用于完善用户信息",
+					success: (res1) => {
+						that.info = res1.userInfo;
+						console.log(res1)
+						uni.showToast({
+							icon: "none",
+							title: '获取成功'
+						})
+						this.getInfo = true
+						uni.switchTab({
+							url: '../index/index'
+						})
+					},
+					fail: (err) => {
+						console.log(err)
+						uni.showToast({
+							icon: "none",
+							title: '用户拒绝获取'
+						})
+					}
+				})
 			}
 		},
 		onLoad() { //默认加载

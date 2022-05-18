@@ -1,6 +1,7 @@
 <template>
 	<view>
-		<u-navbar :is-back="true" :customBack="getIndex" title="表白详情" :background="background" title-color="#FFFFFF" back-icon-color="#fff">
+		<u-navbar :is-back="true" :customBack="getIndex" title="表白详情" :background="background" title-color="#FFFFFF"
+			back-icon-color="#fff">
 		</u-navbar>
 		<view class="postList">
 			<post :item="detailsData"></post>
@@ -35,26 +36,27 @@
 			<view class="writeComment">
 				<u-input v-model="writeComment" type="textarea" border="true" height="260" auto-height="true"
 					placeholder='写评论' :clearable="false" />
-				<view class="smallImg" @click="previewImage()">
-					<view v-for="(item,index) in tempFilePaths" :key="index" style="position: relative;">
-						<u-image :src="item" width="220rpx" height="200rpx" mode=""></u-image>
+				<view class="smallImg">
+					<view v-for="(item,index) in tempFilePaths" :key="index" style="position: relative;width: 33.3%;">
+						<u-image :src="item" width="220rpx" height="200rpx" mode="aspectFit"
+							@click="previewImage(index)"></u-image>
 						<view @tap.stop>
-							<view class="delImg" v-if="tempFilePaths" @click="delImg(index)">
+							<view class="delImg" @click="delImg(index)">
 								<u-icon name="close" size="20rpx"></u-icon>
 							</view>
 						</view>
 					</view>
 				</view>
-				<view class="layout_flex publishComment">
-					<u-icon name="photo" size="40" @click="clickUpload()"></u-icon>
-					<span v-if='writeComment===""' style='color: #FFB16E;'>发送</span>
-					<span v-else style='color: #FF6700;' @click='publishComment()'>发送</span>
+				<view class="publishComment">
+					<u-icon style="float: left;" v-if="updataPhoneNum < 3" name="photo" size="40"
+						@click="clickUpload()"></u-icon>
+					<span v-if='writeComment !== "" && UPFlag === true' style='color: #FF6700; float: right;' @click='publishComment()'>发送</span>
+					<span v-else style='color: #FFB16E; float: right;'>发送</span>
 				</view>
 			</view>
 		</u-popup>
 		<!-- 顶部提示 -->
 		<u-top-tips ref="uTips" :navbar-height="statusBarHeight + navbarHeight"></u-top-tips>
-		<u-loadmore :status="status" :icon-type="iconType" :load-text="loadText" margin-top='20' margin-bottom="30" />
 	</view>
 </template>
 
@@ -86,23 +88,26 @@
 				// 上传图片的地址
 				actionImg: this.http + '/api/file/image',
 				// 添加图片的链接
-				tempFilePaths: '',
+				tempFilePaths: [],
 				// 上传图片的列表
 				imageList: [],
 				// 每个评论的图片列表
 				commentImgList: '',
 				iconType: 'flower',
-				loadText: {
-					loadmore: '轻轻上拉',
-					loading: '正在加载中',
-					nomore: '没有更多评论'
-				},
-				status: 'nomore',
 				dataInfo: {},
 				// 状态栏高度，H5中，此值为0，因为H5不可操作状态栏
 				statusBarHeight: uni.getSystemInfoSync().statusBarHeight,
 				// 导航栏内容区域高度，不包括状态栏高度在内
-				navbarHeight: 44
+				navbarHeight: 44,
+				updataPhoneNum: 0,
+				// 上传图片列表
+				updataPhotoList: '',
+				// 判断图片是否上传完成
+				UPFlag: true,
+				// 判断是否点赞
+				isSupport: false,
+				// 是否添加评论
+				isAddComment: false
 			}
 		},
 		onReachBottom() {
@@ -110,14 +115,15 @@
 			// console.log(this.detailsData.commentCount)
 			if (this.commentSize >= this.detailsData.commentCount) {
 				this.status = 'nomore'
-				return ;
-			}else this.status = 'loading';
+				return;
+			} else this.status = 'loading';
 			this.commentSize += 10;
 			this.getCommentList()
 		},
 		methods: {
 			// 点赞
 			Like(id, support) {
+				this.isSupport = true
 				if (support) {
 					// 取消点赞
 					this.$u.delete('/api/table/support?tableId=' + id).then(res => {
@@ -158,54 +164,52 @@
 					}
 				})
 			},
-			// 点击上传图片
+			// 获取上传图片的链接
 			clickUpload() {
 				uni.chooseImage({
+					count: 1,
 					success: (chooseImageRes) => {
-						const tempFilePaths = chooseImageRes.tempFilePaths;
-						if (tempFilePaths.length <= 5) {
-							this.tempFilePaths = tempFilePaths;
-						} else console.log("请上传小于等于五个图片")
-
-
-
-						for (let i = 0; i < this.tempFilePaths.length; i++) {
-							const uploadTask = uni.uploadFile({
-								url: this.actionImg, //仅为示例，非真实的接口地址
-								filePath: this.tempFilePaths[i],
-								name: 'file',
-								header: {
-									token: uni.getStorageSync('token')
-								},
-								success: (uploadFileRes) => {
-									console.log(uploadFileRes);
-									let successData = JSON.parse(uploadFileRes.data);
-									this.dataInfo = this.getMsg(successData)
-									this.showTips()
-									this.imageList.push(successData.data);
-									console.log(this.imageList)
-								}
-							});
-						}
+						this.updataPhotoList = chooseImageRes.tempFilePaths[0];
+						this.tempFilePaths.push(chooseImageRes.tempFilePaths[0]);
+						this.updataPhoneNum = this.tempFilePaths.length;
+						this.updatePhoto()
 					}
 				});
 			},
+			// 上传图片到服务器
+			updatePhoto() {
+				const uploadTask = uni.uploadFile({
+					url: this.actionImg,
+					filePath: this.updataPhotoList,
+					name: 'file',
+					header: {
+						token: uni.getStorageSync('token')
+					},
+					success: (uploadFileRes) => {
+						this.UPFlag = false;
+						let successData = JSON.parse(uploadFileRes.data);
+						this.imageList.push(successData.data);
+						this.UPFlag = true;
+					}
+				})
+			},
 			// 点击删除图片
 			delImg(index) {
-				this.tempFilePaths = this.tempFilePaths.slice(index + 1);
-				console.log(this.tempFilePaths);
+				this.tempFilePaths.splice(index, 1);
+				this.imageList.splice(index, 1);
+				this.updataPhoneNum -= 1;
 			},
 			// 预览图片
-			previewImage() {
+			previewImage(index) {
 				uni.previewImage({
-					urls: this.tempFilePaths,
+					current: index,
+					urls: this.tempFilePaths
 				});
 			},
 			// 发送评论
 			publishComment() {
+				this.isAddComment = true
 				const imgList = JSON.stringify(this.imageList)
-				console.log(imgList)
-				console.log(typeof imgList)
 				this.$u.post('/api/comment/add', {
 					tableId: this.postID,
 					content: this.writeComment,
@@ -239,16 +243,15 @@
 			},
 			// 跳转到上一页并刷新页面
 			getIndex() {
-				uni.switchTab({
-					url: '../index/index',
-					success() {
-						// getCurrentPages() 方法获取当前页面栈的实例,以数组形式按栈的顺序给出，第一个元素为首页，最后一个元素为当前页面
-						// getCurrentPages().pop();//当前页面
-						var page = getCurrentPages().pop();
-						if (page == undefined || page == null) return;
-						page.onLoad();
-					}
-				})
+				if(this.isAddComment || this.isSupport){
+					uni.reLaunch({
+						url: '../index/index'
+					});					
+				}else{
+					uni.switchTab({
+						url: '../index/index',
+					})					
+				}
 			},
 			// 打开顶部提示
 			showTips() {
@@ -347,13 +350,14 @@
 		right: 0;
 		top: 0;
 	}
+
 	// 评论标题样式
 	.CommentTitle {
 		display: flex;
 		justify-content: space-between;
 		background-color: #fff;
 		padding: 20rpx 0 20rpx 0;
-	
+
 		.CommentTT {
 			font-weight: bold;
 			color: #000;
